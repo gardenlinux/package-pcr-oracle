@@ -1,0 +1,60 @@
+diff --git a/Makefile.in b/Makefile.in
+index 02a915b..7449374 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -3,9 +3,9 @@ PKGNAME		= pcr-oracle-$(VERSION)
+ 
+ CCOPT		= -O0 -g
+ FIRSTBOOTDIR	= /usr/share/jeos-firstboot
+-CFLAGS		= -Wall @TSS2_ESYS_CFLAGS@ @JSON_CFLAGS@ $(CCOPT)
++CFLAGS		= -Wall @TSS2_ESYS_CFLAGS@ @JSON_C_CFLAGS@ $(CCOPT)
+ TSS2_LINK	= -ltss2-esys -ltss2-tctildr -ltss2-rc -ltss2-mu -lcrypto
+-JSON_LINK	= -L@JSON_LIBDIR@ @JSON_LIBS@
++JSON_LINK	= -L@JSON_C_LIBDIR@ @JSON_C_LIBS@
+ TOOLS		= pcr-oracle
+ 
+ MANDIR		= @MANDIR@
+diff --git a/microconf/stage1/03-json b/microconf/stage1/03-json
+index 1b75521..fab6807 100644
+--- a/microconf/stage1/03-json
++++ b/microconf/stage1/03-json
+@@ -1,4 +1,4 @@
+-uc_add_option_with libjson
++uc_add_option_with libjson-c
+ uc_with_libjson=detect
+ 
+ uc_add_help <<EOH
+diff --git a/microconf/stage3/05-json b/microconf/stage3/05-json
+index 54ee1a4..4062d0f 100644
+--- a/microconf/stage3/05-json
++++ b/microconf/stage3/05-json
+@@ -2,6 +2,6 @@
+ # libjson version
+ ##################################################################
+ if [ -z "$uc_with_libjson" -o "$uc_with_libjson" = "detect" ]; then
+-	uc_pkg_config_check_package json
++	uc_pkg_config_check_package json-c
+ fi
+ 
+diff --git a/src/runtime.c b/src/runtime.c
+index 39acb25..3bcf520 100644
+--- a/src/runtime.c
++++ b/src/runtime.c
+@@ -145,15 +145,11 @@ __system_read_efi_variable(const char *var_name)
+ 		return testcase_playback_efi_variable(testcase_playback, var_name);
+ 
+ 	/* First, try new efivars interface */
+-	snprintf(filename, sizeof(filename), "/sys/firmware/efi/efivars/%s", var_name);
++	snprintf(filename, sizeof(filename), "customvars/%s", var_name);
+ 	result = buffer_read_file(filename, RUNTIME_SHORT_READ_OKAY | RUNTIME_MISSING_FILE_OKAY);
+ 	if (result != NULL) {
+ 		/* Skip over 4 bytes of variable attributes */
+ 		buffer_skip(result, 4);
+-	} else {
+-		/* Fall back to old sysfs entries with their 1K limitation */
+-		snprintf(filename, sizeof(filename), "/sys/firmware/efi/vars/%s/data", var_name);
+-		result = buffer_read_file(filename, RUNTIME_SHORT_READ_OKAY | RUNTIME_MISSING_FILE_OKAY);
+ 	}
+ 
+ 	if (result == NULL)
+
