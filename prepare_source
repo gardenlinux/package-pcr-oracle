@@ -1,0 +1,6 @@
+pkg=pcr-oracle
+version_upstream=0.5.4
+version=$version_upstream-1
+version_suffix=gl0
+git_src -b $version_upstream https://github.com/okirch/pcr-oracle
+cp -r debian "$dir/src/"
